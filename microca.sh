@@ -213,12 +213,13 @@ else
     fi
 fi
 
-$OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE | grep "CA:TRUE" > /dev/null
-if [[ $? != 0 ]] ; then
-    echo "Invalid certificate authority (no CA constraint)!" >&2
-    exit 1
+if ! (( $CA_CREATE_ROOT )); then
+	$OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE | grep "CA:TRUE" > /dev/null
+	if [[ $? != 0 ]] ; then
+		echo "Invalid certificate authority (no CA constraint)!" >&2
+		exit 1
+	fi
 fi
-
 
 TEMP_FILE_EXTENSIONS=$(mktemp)
 ctrl_c() {

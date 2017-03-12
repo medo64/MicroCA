@@ -35,7 +35,7 @@ Certificate usage bits. It must be one of following usages: digitalSignature, no
 Do not use passphrase for private key.
 
 `-v`  
-Verbose output.
+Verbose output. It can be used multiple times for greater amount of details.
 
 `file`  
 File name prefix to use for key and certificate.
@@ -48,4 +48,4 @@ File name prefix to use for key and certificate.
     ./microca.sh -r -b 4096 -d 30 -s "/CN=My Certificate Authority"
     ./microca.sh -u Server server
     ./microca.sh -u Client client
-    ./microca.sh -u BitLocker bitlocker
+    ./microca.sh -eu BitLocker bitlocker

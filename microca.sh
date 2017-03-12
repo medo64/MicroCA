@@ -52,7 +52,7 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
             echo    "    Do not use passphrase for private key." | fmt
             echo
             echo -e "    \033[4m-v\033[0m"
-            echo    "    Verbose output." | fmt
+            echo    "    Verbose output. It can be used multiple times for greater amount of details." | fmt
             echo
             echo -e "    \033[4mfile\033[0m"
             echo    "    File name prefix to use for key and certificate." | fmt
@@ -66,7 +66,7 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
             echo    "  $0 -r -b 4096 -d 30 -s \"/CN=My Certificate Authority\"" | fmt
             echo    "  $0 -u Server server" | fmt
             echo    "  $0 -u Client client" | fmt
-            echo    "  $0 -u BitLocker bitlocker" | fmt
+            echo    "  $0 -eu BitLocker bitlocker" | fmt
             echo
             exit 0
         ;;
@@ -142,10 +142,10 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
                     client)
                         CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES clientAuth"
                     ;;
-					bitlocker)
-						CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES 1.3.6.1.4.1.311.67.1.1"
-						CERTIFICATE_SUBJECT="/CN=BitLocker"
-					;;
+                    bitlocker)
+                        CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES 1.3.6.1.4.1.311.67.1.1"
+                        CERTIFICATE_SUBJECT="/CN=BitLocker"
+                    ;;
 
                     *)
                         echo "Unrecognized usage: -u $TEMP_USAGE!" >&2
@@ -155,7 +155,7 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
             done
         ;;
 
-        v)  VERBOSE=1 ;;
+        v)  VERBOSE=$((VERBOSE + 1)) ;;
 
         x)  KEY_PASSPHRASE_CIPHER="" ;;
 
@@ -190,11 +190,11 @@ CERTIFICATE_USAGES=`echo $CERTIFICATE_USAGES | tr " " "\n" | egrep -v "^$" | sor
 CERTIFICATE_EXTENDED_USAGES=`echo $CERTIFICATE_EXTENDED_USAGES | tr " " "\n" | egrep -v "^$" | sort | uniq | tr "\n" " " | sed -e 's/[[:space:]]*$//'`
 
 if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
-	if ! [[ "$CERTIFICATE_SUBJECT" =~ ^/ ]]; then
-		CERTIFICATE_SUBJECT="/$CERTIFICATE_SUBJECT"
-	fi
+    if ! [[ "$CERTIFICATE_SUBJECT" =~ ^/ ]]; then
+        CERTIFICATE_SUBJECT="/$CERTIFICATE_SUBJECT"
+    fi
 fi
-		
+        
 if (( $CA_CREATE_ROOT )); then
     OUTPUT_PREFIX_COUNT=`echo $OUTPUT_PREFIXES | tr " " "\n" | wc -l`
     if (( $OUTPUT_PREFIX_COUNT > 1 )); then
@@ -232,11 +232,11 @@ else
 fi
 
 if ! (( $CA_CREATE_ROOT )); then
-	$OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE | grep "CA:TRUE" > /dev/null
-	if [[ $? != 0 ]] ; then
-		echo "Invalid certificate authority (no CA constraint)!" >&2
-		exit 1
-	fi
+    $OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE | grep "CA:TRUE" > /dev/null
+    if [[ $? != 0 ]] ; then
+        echo "Invalid certificate authority (no CA constraint)!" >&2
+        exit 1
+    fi
 fi
 
 TEMP_FILE_EXTENSIONS=$(mktemp)
@@ -271,7 +271,10 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     else
         COMMAND_KEY="$OPENSSL_COMMAND genrsa -out $KEY_FILE $KEY_SIZE"
     fi
-    `echo $COMMAND_KEY`
+    if (( $VERBOSE >= 2 )); then
+        echo ; echo "*** $COMMAND_KEY ***"
+    fi
+    eval $COMMAND_KEY
     if [[ $? != 0 ]] ; then
         echo "Failed key creation!" >&2
         exit 1
@@ -281,9 +284,17 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     if (( $CA_CREATE_ROOT )); then
         COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
-		if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
-			COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
-		fi
+        if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
+            COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
+        fi
+        if (( $VERBOSE >= 3 )); then
+            echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
+            cat $TEMP_FILE_EXTENSIONS
+            echo "*** --- **"
+        fi
+        if (( $VERBOSE >= 2 )); then
+            echo ; echo "*** $COMMAND_CER ***"
+        fi
         eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
@@ -294,9 +305,12 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     else
 
         COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -sha256 -out $CSR_FILE"
-		if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
-			COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
-		fi
+        if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
+            COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
+        fi
+        if (( $VERBOSE >= 2 )); then
+            echo ; echo "*** $COMMAND_CSR ***"
+        fi
         eval $COMMAND_CSR
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
@@ -305,6 +319,14 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         fi
 
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
+        if (( $VERBOSE >= 3 )); then
+            echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
+            cat $TEMP_FILE_EXTENSIONS
+            echo "*** --- ***"
+        fi
+        if (( $VERBOSE >= 2 )); then
+            echo ; echo "*** $COMMAND_CER ***"
+        fi
         eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
@@ -315,11 +337,21 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     fi
 
     if (( $VERBOSE )); then
-        $OPENSSL_COMMAND x509 -text -serial -fingerprint -in $CER_FILE
+        COMMAND_DET="$OPENSSL_COMMAND x509 -text -serial -fingerprint -in $CER_FILE"
+        if (( $VERBOSE >= 2 )); then
+            echo ; echo "*** $COMMAND_DET ***"
+        fi
+        echo
+        eval $COMMAND_DET
     fi
 
     if (( $EXPORT )); then
-        $OPENSSL_COMMAND pkcs12 -export -in $CER_FILE -inkey $KEY_FILE -out $P12_FILE
+        COMMAND_EXP="$OPENSSL_COMMAND pkcs12 -export -in $CER_FILE -inkey $KEY_FILE -out $P12_FILE"
+        if (( $VERBOSE >= 2 )); then
+            echo ; echo "*** $COMMAND_EXP ***"
+        fi
+        echo
+        eval $COMMAND_EXP
     fi
 done
 

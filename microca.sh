@@ -11,17 +11,18 @@ CA_CREATE_ROOT=0
 CERTIFICATE_DAYS=3650
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
+CERTIFICATE_SUBJECT=""
 
 EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:ehru:vx" OPT; do
+while getopts ":ab:c:d:ehrs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-r\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfile\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfile\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -41,8 +42,11 @@ while getopts ":ab:c:d:ehru:vx" OPT; do
             echo -e "    \033[4m-r\033[0m"
             echo    "    Creates a self-signed root certificate authority." | fmt
             echo
+            echo -e "    \033[4m-s <subject>\033[0m"
+            echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
+            echo
             echo -e "    \033[4m-u <usagebits>\033[0m"
-            echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), or Client (clientAuth). If multiple usages are required, you can separate them with comma (,)." | fmt
+            echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
             echo
             echo -e "    \033[4m-x\033[0m"
             echo    "    Do not use passphrase for private key." | fmt
@@ -59,8 +63,10 @@ while getopts ":ab:c:d:ehru:vx" OPT; do
             echo    "  SAMPLES"
             echo    "  $0 -r" | fmt
             echo    "  $0 -r -b 4096 -d 30" | fmt
+            echo    "  $0 -r -b 4096 -d 30 -s \"/CN=My Certificate Authority\"" | fmt
             echo    "  $0 -u Server server" | fmt
             echo    "  $0 -u Client client" | fmt
+            echo    "  $0 -u BitLocker bitlocker" | fmt
             echo
             exit 0
         ;;
@@ -97,6 +103,8 @@ while getopts ":ab:c:d:ehru:vx" OPT; do
             CA_CREATE_ROOT=1
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
         ;;
+        
+        s)  CERTIFICATE_SUBJECT="$OPTARG" ;;
 
         u)
             TEMP_USAGES=`echo $OPTARG | tr ',' ' '`
@@ -134,6 +142,10 @@ while getopts ":ab:c:d:ehru:vx" OPT; do
                     client)
                         CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES clientAuth"
                     ;;
+					bitlocker)
+						CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES 1.3.6.1.4.1.311.67.1.1"
+						CERTIFICATE_SUBJECT="/CN=BitLocker"
+					;;
 
                     *)
                         echo "Unrecognized usage: -u $TEMP_USAGE!" >&2
@@ -177,6 +189,12 @@ fi
 CERTIFICATE_USAGES=`echo $CERTIFICATE_USAGES | tr " " "\n" | egrep -v "^$" | sort | uniq | tr "\n" " " | sed -e 's/[[:space:]]*$//'`
 CERTIFICATE_EXTENDED_USAGES=`echo $CERTIFICATE_EXTENDED_USAGES | tr " " "\n" | egrep -v "^$" | sort | uniq | tr "\n" " " | sed -e 's/[[:space:]]*$//'`
 
+if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
+	if ! [[ "$CERTIFICATE_SUBJECT" =~ ^/ ]]; then
+		CERTIFICATE_SUBJECT="/$CERTIFICATE_SUBJECT"
+	fi
+fi
+		
 if (( $CA_CREATE_ROOT )); then
     OUTPUT_PREFIX_COUNT=`echo $OUTPUT_PREFIXES | tr " " "\n" | wc -l`
     if (( $OUTPUT_PREFIX_COUNT > 1 )); then
@@ -241,6 +259,7 @@ if [[ "$CERTIFICATE_EXTENDED_USAGES" != "" ]]; then
     echo -e "\nextendedKeyUsage=`echo $CERTIFICATE_EXTENDED_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
 fi
 
+
 for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     KEY_FILE=$OUTPUT_PREFIX.key
     CSR_FILE=$OUTPUT_PREFIX.csr
@@ -262,7 +281,10 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     if (( $CA_CREATE_ROOT )); then
         COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
-        `echo $COMMAND_CER`
+		if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
+			COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
+		fi
+        eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
             echo "Failed certificate creation!" >&2
@@ -272,7 +294,10 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     else
 
         COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -sha256 -out $CSR_FILE"
-        `echo $COMMAND_CSR`
+		if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
+			COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
+		fi
+        eval $COMMAND_CSR
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
             echo "Failed certificate signing request creation!" >&2
@@ -280,7 +305,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         fi
 
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
-        `echo $COMMAND_CER`
+        eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
             rm $KEY_FILE 2>/dev/null
             echo "Failed certificate creation!" >&2

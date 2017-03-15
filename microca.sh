@@ -256,6 +256,8 @@ if ! (( $CA_CREATE_ROOT )); then
 fi
 if (( $CA_CREATE )); then
     echo -e "\nbasicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS
+else
+    echo -e "\nbasicConstraints=CA:false" >> $TEMP_FILE_EXTENSIONS
 fi
 if [[ "$CERTIFICATE_USAGES" != "" ]]; then
     echo -e "\nkeyUsage=`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS

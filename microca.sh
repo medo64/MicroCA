@@ -50,7 +50,7 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
             echo
             echo -e "    \033[4m-u <usagebits>\033[0m"
-            echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
+            echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
             echo
             echo -e "    \033[4m-x\033[0m"
             echo    "    Do not use passphrase for private key." | fmt
@@ -66,11 +66,13 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo
             echo    "  SAMPLES"
             echo    "  $0 -r" | fmt
-            echo    "  $0 -r -b 4096 -d 30" | fmt
-            echo    "  $0 -r -b 4096 -d 30 -s \"/CN=My Certificate Authority\"" | fmt
+            echo    "  $0 -r -b 4096" | fmt
+            echo    "  $0 -r -b 4096 -s \"CN=My Root CA\"" | fmt
+            echo    "  $0 -a -b 2048 -s \"CN=My Intermediate CA\"" inter-ca | fmt
+            echo    "  $0 -p -b 1024 -s \"CN=My Test\" test" | fmt
             echo    "  $0 -u Server server" | fmt
             echo    "  $0 -u Client client" | fmt
-            echo    "  $0 -eu BitLocker bitlocker" | fmt
+            echo    "  $0 -u BitLocker -e bitlocker" | fmt
             echo
             exit 0
         ;;

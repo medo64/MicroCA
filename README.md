@@ -3,7 +3,7 @@
 Wrapper around openssl for creation of self-signed CA and certificates.
 
   
-#### SYNOPSIS####
+#### SYNOPSIS ####
 
     microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e] [-p] [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] file
 
@@ -28,7 +28,7 @@ Creates a self-signed end entity certificate, i.e. no certificate authority is u
 `-r`  
 Creates a self-signed root certificate authority.
 
-`-s <subject>`
+`-s <subject>`  
 Full subject for a certificate (e.g. -s /C=US/CN=www.example.com).
 
 `-u <usagebits>`  
@@ -47,8 +47,10 @@ File name prefix to use for key and certificate.
 #### SAMPLES ####
   
     ./microca.sh -r
-    ./microca.sh -r -b 4096 -d 30
-    ./microca.sh -r -b 4096 -d 30 -s "/CN=My Certificate Authority"
+    ./microca.sh -r -b 4096
+    ./microca.sh -r -b 4096 -s "CN=My Root CA"
+    ./microca.sh -a -b 2048 -s "CN=My Intermediate CA"
+    ./microca.sh -p -b 1024 -s "CN=My Test" test
     ./microca.sh -u Server server
     ./microca.sh -u Client client
-    ./microca.sh -eu BitLocker bitlocker
+    ./microca.sh -u BitLocker -e bitlocker

@@ -45,12 +45,63 @@ File name prefix to use for key and certificate.
 
 
 #### SAMPLES ####
-  
+
+##### Root CA #####
+
     ./microca.sh -r
+
+CreateS a root certificate authority. User is asked password for the key and all details of the certificate (e.g. subject). Key is placed into ca.key and certificate is into ca.cer.
+
     ./microca.sh -r -b 4096
+
+Same as the first command but key length is specified to be 4096 bits (default is 2048).
+
     ./microca.sh -r -b 4096 -s "CN=My Root CA"
-    ./microca.sh -a -b 2048 -s "CN=My Intermediate CA"
-    ./microca.sh -p -b 1024 -s "CN=My Test" test
-    ./microca.sh -u Server server
-    ./microca.sh -u Client client
-    ./microca.sh -u BitLocker -e bitlocker
+
+Instead of being asked for subject, subject is defined on the command line.
+
+    ./microca.sh -r -b 4096 -s "CN=My Root CA" -d 365
+
+The created root certificate is valid for 1 year only (default is 10 years).
+
+
+##### Intermediate CA #####
+
+    ./microca.sh -a -b 2048 -s "CN=My Intermediate CA" inter-ca
+
+Creates an intermediate CA with 2048 bit long key and subject text specified on command line. Key is placed into inter-ca.key and certificate is into inter-ca.cer.
+
+
+##### End entity #####
+
+    ./microca.sh test
+
+Creates an end-entity certificate signed using ca.key and ca.cer. User will be asked password for newly created key (and CA key, if password is present) and all the details of the certificate (e.g. subject). Key is placed into test.key and certificate is into test.cer.
+
+    ./microca.sh -x test
+
+Same as above but without a password for newly created key.
+
+    ./microca.sh -ex test
+
+Same as above but certificate and key are additionally exported to test.p12 PKCS#12 container.
+
+    ./microca.sh -exu Server server
+
+Same as above but certificate is created with usage bits for server (digitalSignature, keyEncipherment, and serverAuth).
+
+    ./microca.sh -exu Client client
+
+Same as before but certificate is created with usage bits for client (clientAuth).
+
+    ./microca.sh -exu BitLocker bitlocker
+
+Same as before but certificate is created with usage bits for bitlocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1).
+
+    ./microca.sh -exu BitLocker -c inter-ca bitlocker
+
+Same as before but certificate is signed by intermediate CA (contained into inter-ca.key and inter-ca.cer).
+
+    ./microca.sh -xpb 1024 -s "CN=My Test" test
+
+Creates an self-signed end-entity certificate with 1024 bit RSA key and with subject CN=My Test. Key is placed into test.key and certificate into test.cer.

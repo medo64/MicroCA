@@ -143,6 +143,7 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
                         CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES clientAuth"
                     ;;
                     bitlocker)
+                        CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyEncipherment"
                         CERTIFICATE_EXTENDED_USAGES="$CERTIFICATE_EXTENDED_USAGES 1.3.6.1.4.1.311.67.1.1"
                         CERTIFICATE_SUBJECT="/CN=BitLocker"
                     ;;

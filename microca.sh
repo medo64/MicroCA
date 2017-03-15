@@ -251,6 +251,9 @@ trap ctrl_c INT
 cat $OPENSSL_CONFIG > $TEMP_FILE_EXTENSIONS
 echo -e "\n[myext]" >> $TEMP_FILE_EXTENSIONS
 echo -e "\nsubjectKeyIdentifier=hash" >> $TEMP_FILE_EXTENSIONS
+if ! (( $CA_CREATE_ROOT )); then
+    echo -e "\nauthorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
+fi
 if (( $CA_CREATE )); then
     echo -e "\nbasicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS
 fi

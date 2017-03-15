@@ -250,20 +250,20 @@ trap ctrl_c INT
 
 cat $OPENSSL_CONFIG > $TEMP_FILE_EXTENSIONS
 echo -e "\n[myext]" >> $TEMP_FILE_EXTENSIONS
-echo -e "\nsubjectKeyIdentifier=hash" >> $TEMP_FILE_EXTENSIONS
+echo "subjectKeyIdentifier=hash" >> $TEMP_FILE_EXTENSIONS
 if ! (( $CA_CREATE_ROOT )); then
-    echo -e "\nauthorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
+    echo "authorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
 fi
 if (( $CA_CREATE )); then
-    echo -e "\nbasicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS
+    echo "basicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS
 else
-    echo -e "\nbasicConstraints=CA:false" >> $TEMP_FILE_EXTENSIONS
+    echo "basicConstraints=CA:false" >> $TEMP_FILE_EXTENSIONS
 fi
 if [[ "$CERTIFICATE_USAGES" != "" ]]; then
-    echo -e "\nkeyUsage=`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
+    echo "keyUsage=`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
 fi
 if [[ "$CERTIFICATE_EXTENDED_USAGES" != "" ]]; then
-    echo -e "\nextendedKeyUsage=`echo $CERTIFICATE_EXTENDED_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
+    echo "extendedKeyUsage=`echo $CERTIFICATE_EXTENDED_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
 fi
 
 

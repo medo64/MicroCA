@@ -12,17 +12,18 @@ CERTIFICATE_DAYS=3650
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
+CERTIFICATE_SELF=0
 
 EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:ehrs:u:vx" OPT; do
+while getopts ":ab:c:d:ehprs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfile\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfile\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -38,6 +39,9 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
             echo
             echo -e "    \033[4m-e\033[0m"
             echo    "    Exports the resulting key as PKCS12 file." | fmt
+            echo
+            echo -e "    \033[4m-p\033[0m"
+            echo    "    Creates a self-signed end entity certificate, i.e. no certificate authority is used." | fmt
             echo
             echo -e "    \033[4m-r\033[0m"
             echo    "    Creates a self-signed root certificate authority." | fmt
@@ -97,6 +101,8 @@ while getopts ":ab:c:d:ehrs:u:vx" OPT; do
         ;;
 
         e)  EXPORT=1 ;;
+
+        p)  CERTIFICATE_SELF=1 ;;
 
         r)
             CA_CREATE=1
@@ -202,7 +208,10 @@ if (( $CA_CREATE_ROOT )); then
         echo "Only one file is allowed when creating root certificate authority!" >&2
         exit 1
     fi
-else
+elif (( $CA_CREATE )) && (( $CERTIFICATE_SELF )); then
+    echo "Cannot self-sign intermediate certificate!" >&2
+    exit 1
+elif ! (( $CERTIFICATE_SELF )); then
     CA_KEY_FILE=$CA_PREFIX.key
     if ! [ -a $CA_KEY_FILE ]; then
         echo "Cannot find CA key file!" >&2
@@ -232,8 +241,8 @@ else
     fi
 fi
 
-if ! (( $CA_CREATE_ROOT )); then
-    $OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE | grep "CA:TRUE" > /dev/null
+if ! (( $CA_CREATE_ROOT )) && ! (( $CERTIFICATE_SELF )); then
+    $OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE 2>/dev/null | grep "CA:TRUE" > /dev/null
     if [[ $? != 0 ]] ; then
         echo "Invalid certificate authority (no CA constraint)!" >&2
         exit 1
@@ -251,7 +260,7 @@ trap ctrl_c INT
 cat $OPENSSL_CONFIG > $TEMP_FILE_EXTENSIONS
 echo -e "\n[myext]" >> $TEMP_FILE_EXTENSIONS
 echo "subjectKeyIdentifier=hash" >> $TEMP_FILE_EXTENSIONS
-if ! (( $CA_CREATE_ROOT )); then
+if ! (( $CA_CREATE_ROOT )) && ! (( CERTIFICATE_SELF )); then
     echo "authorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
 fi
 if (( $CA_CREATE )); then
@@ -289,7 +298,8 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     SERIAL=`$OPENSSL_COMMAND rand -hex 18`
 
-    if (( $CA_CREATE_ROOT )); then
+    if (( $CA_CREATE_ROOT )) || (( $CERTIFICATE_SELF )); then
+
         COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""

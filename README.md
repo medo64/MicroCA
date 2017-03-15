@@ -5,7 +5,7 @@ Wrapper around openssl for creation of self-signed CA and certificates.
   
 #### SYNOPSIS####
 
-    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e] [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] file
+    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e] [-p] [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] file
 
 `-a`  
 Marks certificate as certificate authority.
@@ -21,6 +21,9 @@ Number of days certificate is valid for. Default value is 3650 days.
 
 `-e`  
 Exports the resulting key as PKCS12 file.
+
+`-p`  
+Creates a self-signed end entity certificate, i.e. no certificate authority is used.
 
 `-r`  
 Creates a self-signed root certificate authority.

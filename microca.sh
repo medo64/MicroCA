@@ -23,7 +23,7 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfile\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -31,7 +31,7 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo -e "    \033[4m-b <numbits>\033[0m"
             echo    "    Number of bits to use for key. Default value is 2048." | fmt
             echo
-            echo -e "    \033[4m-c <ca>\033[0m"
+            echo -e "    \033[4m-c <fileprefix>\033[0m"
             echo    "    Prefix for CA (default value is ca)." | fmt
             echo
             echo -e "    \033[4m-d <days>\033[0m"
@@ -52,13 +52,13 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo -e "    \033[4m-u <usagebits>\033[0m"
             echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
             echo
-            echo -e "    \033[4m-x\033[0m"
-            echo    "    Do not use passphrase for private key." | fmt
-            echo
             echo -e "    \033[4m-v\033[0m"
             echo    "    Verbose output. It can be used multiple times for greater amount of details." | fmt
             echo
-            echo -e "    \033[4mfile\033[0m"
+            echo -e "    \033[4m-x\033[0m"
+            echo    "    Do not use passphrase for private key." | fmt
+            echo
+            echo -e "    \033[4mfileprefix\033[0m"
             echo    "    File name prefix to use for key and certificate." | fmt
             echo
             echo    "  DESCRIPTION"

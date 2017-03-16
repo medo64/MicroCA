@@ -280,6 +280,11 @@ fi
 if [[ "$CERTIFICATE_EXTENDED_USAGES" != "" ]]; then
     echo "extendedKeyUsage=`echo $CERTIFICATE_EXTENDED_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
 fi
+if (( $CA_CREATE )); then
+    sed -i "/\\[ req_distinguished_name \\]/a commonName_default=`hostname` CA" $TEMP_FILE_EXTENSIONS
+else
+    sed -i "/\\[ req_distinguished_name \\]/a commonName_default=`hostname`" $TEMP_FILE_EXTENSIONS
+fi
 
 
 for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
@@ -304,16 +309,17 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     SERIAL=`$OPENSSL_COMMAND rand -hex 18`
 
+    if (( $VERBOSE >= 3 )); then
+        echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
+        cat $TEMP_FILE_EXTENSIONS
+        echo "*** --- **"
+    fi
+
     if (( $CA_CREATE_ROOT )) || (( $CERTIFICATE_SELF )); then
 
         COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
-        fi
-        if (( $VERBOSE >= 3 )); then
-            echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
-            cat $TEMP_FILE_EXTENSIONS
-            echo "*** --- **"
         fi
         if (( $VERBOSE >= 2 )); then
             echo ; echo "*** $COMMAND_CER ***"
@@ -327,7 +333,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     else
 
-        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -sha256 -out $CSR_FILE"
+        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -sha256 -out $CSR_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
         fi
@@ -342,11 +348,6 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         fi
 
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
-        if (( $VERBOSE >= 3 )); then
-            echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
-            cat $TEMP_FILE_EXTENSIONS
-            echo "*** --- ***"
-        fi
         if (( $VERBOSE >= 2 )); then
             echo ; echo "*** $COMMAND_CER ***"
         fi

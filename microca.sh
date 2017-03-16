@@ -263,7 +263,11 @@ cat $OPENSSL_CONFIG > $TEMP_FILE_EXTENSIONS
 echo -e "\n[myext]" >> $TEMP_FILE_EXTENSIONS
 echo "subjectKeyIdentifier=hash" >> $TEMP_FILE_EXTENSIONS
 if ! (( $CA_CREATE_ROOT )) && ! (( CERTIFICATE_SELF )); then
-    echo "authorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
+    if (( $CA_CREATE )); then
+        echo "authorityKeyIdentifier=keyid:always,issuer:always" >> $TEMP_FILE_EXTENSIONS
+    else
+        echo "authorityKeyIdentifier=keyid,issuer:always" >> $TEMP_FILE_EXTENSIONS
+    fi
 fi
 if (( $CA_CREATE )); then
     echo "basicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS

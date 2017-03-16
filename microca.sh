@@ -305,7 +305,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         exit 1
     fi
 
-    SERIAL=`$OPENSSL_COMMAND rand -hex 18`
+    SERIAL=`$OPENSSL_COMMAND rand -hex 19`
 
     if (( $VERBOSE >= 3 )); then
         echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
@@ -315,7 +315,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     if (( $CA_CREATE_ROOT )) || (( $CERTIFICATE_SELF )); then
 
-        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
         fi
@@ -345,7 +345,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             exit 1
         fi
 
-        COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x10$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
         if (( $VERBOSE >= 2 )); then
             echo ; echo "*** $COMMAND_CER ***"
         fi

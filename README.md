@@ -5,7 +5,9 @@ Wrapper around openssl for creation of self-signed CA and certificates.
   
 #### SYNOPSIS ####
 
-    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e] [-p] [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
+    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
+               [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p] [-r]
+               [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
 
 `-a`  
 Marks certificate as certificate authority.
@@ -21,6 +23,16 @@ Number of days certificate is valid for. Default value is 3650 days.
 
 `-e`  
 Exports the resulting key as PKCS12 file.
+
+
+`-i <ipaddress>`  
+IP address to add into subjectAltName extension. Can be repeated multiple times.
+
+`-m <email>`  
+E-mail address to add into subjectAltName extension. Can be repeated multiple times.
+
+`-n <dnsname>`  
+DNS name to add into subjectAltName extension. Can be repeated multiple times.
 
 `-p`  
 Creates a self-signed end entity certificate, i.e. no certificate authority is used.
@@ -89,6 +101,10 @@ Same as above but certificate and key are additionally exported to test.p12 PKCS
     ./microca.sh -exu Server server
 
 Same as above but certificate is created with usage bits for server (digitalSignature, keyEncipherment, and serverAuth).
+
+    ./microca.sh -exu Server -n localhost -i 127.0.0.1 -s "CN=localhost" server
+
+Same as before but certificate also contains subjectAltName with localhost as DNS name and 127.0.0.1 as IP address. Subject is also defined to be CN=localhost.
 
     ./microca.sh -exu Client client
 

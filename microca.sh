@@ -13,17 +13,20 @@ CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
 CERTIFICATE_SELF=0
+CERTIFICATE_ALT_DNS=()
+CERTIFICATE_ALT_IP=()
+CERTIFICATE_ALT_EMAIL=()
 
 EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:ehprs:u:vx" OPT; do
+while getopts ":ab:c:d:ehi:m:n:prs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -39,6 +42,15 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo
             echo -e "    \033[4m-e\033[0m"
             echo    "    Exports the resulting key as PKCS12 file." | fmt
+            echo
+            echo -e "    \033[4m-i <ipaddress>\033[0m"
+            echo    "    IP address to add into subjectAltName extension. Can be repeated multiple times." | fmt
+            echo
+            echo -e "    \033[4m-m <email>\033[0m"
+            echo    "    E-mail address to add into subjectAltName extension. Can be repeated multiple times." | fmt
+            echo
+            echo -e "    \033[4m-n <dnsname>\033[0m"
+            echo    "    DNS name to add into subjectAltName extension. Can be repeated multiple times." | fmt
             echo
             echo -e "    \033[4m-p\033[0m"
             echo    "    Creates a self-signed end entity certificate, i.e. no certificate authority is used." | fmt
@@ -70,6 +82,7 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
             echo    "  $0 -r -b 4096 -s \"CN=My Root CA\"" | fmt
             echo    "  $0 -a -b 2048 -s \"CN=My Intermediate CA\"" inter-ca | fmt
             echo    "  $0 -p -b 1024 -s \"CN=My Test\" test" | fmt
+            echo    "  $0 -p -b 1024 -s \"CN=My Test\" -i 127.0.0.1 -n localhost test" | fmt
             echo    "  $0 -u Server server" | fmt
             echo    "  $0 -u Client client" | fmt
             echo    "  $0 -u BitLocker -e bitlocker" | fmt
@@ -103,6 +116,12 @@ while getopts ":ab:c:d:ehprs:u:vx" OPT; do
         ;;
 
         e)  EXPORT=1 ;;
+
+        i)  CERTIFICATE_ALT_IP+=("$OPTARG") ;;
+
+        m)  CERTIFICATE_ALT_EMAIL+=("$OPTARG") ;;
+
+        n)  CERTIFICATE_ALT_DNS+=("$OPTARG") ;;
 
         p)  CERTIFICATE_SELF=1 ;;
 
@@ -282,6 +301,21 @@ if (( $CA_CREATE )); then
     sed -i "/\\[ req_distinguished_name \\]/a commonName_default=`hostname` CA" $TEMP_FILE_EXTENSIONS
 else
     sed -i "/\\[ req_distinguished_name \\]/a commonName_default=`hostname`" $TEMP_FILE_EXTENSIONS
+fi
+
+if (( ${#CERTIFICATE_ALT_DNS[@]} > 0 )) || (( ${#CERTIFICATE_ALT_IP[@]} > 0 )) || (( ${#CERTIFICATE_ALT_EMAIL[@]} > 0 )); then
+    echo "subjectAltName=@alt_section" >> $TEMP_FILE_EXTENSIONS
+    echo >> $TEMP_FILE_EXTENSIONS
+    echo "[alt_section]" >> $TEMP_FILE_EXTENSIONS
+    for (( i=0; i<${#CERTIFICATE_ALT_DNS[@]}; i++)); do
+        echo "DNS.$((i+1))=${CERTIFICATE_ALT_DNS[$i]}" >> $TEMP_FILE_EXTENSIONS
+    done
+    for (( i=0; i<${#CERTIFICATE_ALT_IP[@]}; i++)); do
+        echo "IP.$((i+1))=${CERTIFICATE_ALT_IP[$i]}" >> $TEMP_FILE_EXTENSIONS
+    done
+    for (( i=0; i<${#CERTIFICATE_ALT_EMAIL[@]}; i++)); do
+        echo "email.$((i+1))=${CERTIFICATE_ALT_EMAIL[$i]}" >> $TEMP_FILE_EXTENSIONS
+    done
 fi
 
 

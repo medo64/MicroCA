@@ -12,6 +12,7 @@ CA_CREATE=0
 CA_CREATE_ROOT=0
 
 CERTIFICATE_DAYS=3650
+CERTIFICATE_DAYS_FORCED=0
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
@@ -62,7 +63,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             echo    "    Creates a self-signed end entity certificate, i.e. no certificate authority is used." | fmt
             echo
             echo -e "    \033[4m-r\033[0m"
-            echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384." | fmt
+            echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384. Key will be valid for 7300 days." | fmt
             echo
             echo -e "    \033[4m-s <subject>\033[0m"
             echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
@@ -120,6 +121,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
                 echo "Value outside of range (1 to 7300): -d $OPTARG!" >&2
                 exit 1
             fi
+            CERTIFICATE_DAYS_FORCED=1
         ;;
 
         e)  EXPORT=1 ;;
@@ -153,6 +155,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
             if ! (( $KEY_SIZE_FORCED )); then KEY_SIZE=4096; fi
             if ! (( $SIGNATURE_DIGEST_FORCED )); then SIGNATURE_DIGEST=sha384; fi
+            if ! (( $CERTIFICATE_DAYS_FORCED )); then CERTIFICATE_DAYS=7300; fi
         ;;
         
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;

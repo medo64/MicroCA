@@ -25,12 +25,12 @@ EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
+while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -43,9 +43,6 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
             echo
             echo -e "    \033[4m-d <days>\033[0m"
             echo    "    Number of days certificate is valid for. Default value is 3650 days." | fmt
-            echo
-            echo -e "    \033[4m-e\033[0m"
-            echo    "    Exports the resulting key as PKCS12 file." | fmt
             echo
             echo -e "    \033[4m-g <digest>\033[0m"
             echo    "    Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256." | fmt
@@ -77,6 +74,9 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
             echo -e "    \033[4m-v\033[0m"
             echo    "    Verbose output. It can be used multiple times for greater amount of details." | fmt
             echo
+            echo -e "    \033[4m-x\033[0m"
+            echo    "    Exports the resulting key as PKCS12 file." | fmt
+            echo
             echo -e "    \033[4mfileprefix\033[0m"
             echo    "    File name prefix to use for key and certificate." | fmt
             echo
@@ -92,7 +92,7 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
             echo    "  $0 -p -b 1024 -s \"CN=My Test\" -i 127.0.0.1 -n localhost test" | fmt
             echo    "  $0 -u Server server" | fmt
             echo    "  $0 -u Client client" | fmt
-            echo    "  $0 -u BitLocker -e bitlocker" | fmt
+            echo    "  $0 -u BitLocker -x bitlocker" | fmt
             echo
             exit 0
         ;;
@@ -123,8 +123,6 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
             fi
             CERTIFICATE_DAYS_FORCED=1
         ;;
-
-        e)  EXPORT=1 ;;
 
         g)
             TEMP_DIGEST_LOWER=`echo $OPTARG | tr '[:upper:]' '[:lower:]'`
@@ -213,6 +211,8 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
         ;;
 
         v)  VERBOSE=$((VERBOSE + 1)) ;;
+
+        x)  EXPORT=1 ;;
 
         \?)
             echo "Invalid option: -$OPTARG!" >&2

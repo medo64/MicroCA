@@ -5,9 +5,9 @@ Wrapper around openssl for creation of self-signed CA and certificates.
   
 #### SYNOPSIS ####
 
-    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
-               [-g <digest>] [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p]
-               [-q] [-r] [-s <subject>] [-u <usagebits>] [-v] fileprefix
+    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-g <digest>]
+               [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p] [-q] [-r]
+               [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
 
 `-a`  
 Marks certificate as certificate authority.
@@ -20,9 +20,6 @@ Prefix for CA (default value is ca).
 
 `-d <days>`  
 Number of days certificate is valid for. Default value is 3650 days.
-
-`-e`  
-Exports the resulting key as PKCS12 file.
 
 `-g`  
 Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256.
@@ -53,6 +50,9 @@ Certificate usage bits. It must be one of following usages: digitalSignature, no
 
 `-v`  
 Verbose output. It can be used multiple times for greater amount of details.
+
+`-x`  
+Exports the resulting key as PKCS12 file.
 
 `fileprefix`  
 File name prefix to use for key and certificate.
@@ -96,27 +96,27 @@ Creates an end-entity certificate signed using ca.key and ca.cer. User will be a
 
 Same as above but without a password for newly created key.
 
-    ./microca.sh -eq test
+    ./microca.sh -xq test
 
 Same as above but certificate and key are additionally exported to test.p12 PKCS#12 container.
 
-    ./microca.sh -equ Server server
+    ./microca.sh -xqu Server server
 
 Same as above but certificate is created with usage bits for server (digitalSignature, keyEncipherment, and serverAuth).
 
-    ./microca.sh -equ Server -n localhost -i 127.0.0.1 -s "CN=localhost" server
+    ./microca.sh -xqu Server -n localhost -i 127.0.0.1 -s "CN=localhost" server
 
 Same as before but certificate also contains subjectAltName with localhost as DNS name and 127.0.0.1 as IP address. Subject is also defined to be CN=localhost.
 
-    ./microca.sh -equ Client client
+    ./microca.sh -xqu Client client
 
 Same as before but certificate is created with usage bits for client (clientAuth).
 
-    ./microca.sh -equ BitLocker bitlocker
+    ./microca.sh -xqu BitLocker bitlocker
 
 Same as before but certificate is created with usage bits for bitlocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1).
 
-    ./microca.sh -equ BitLocker -c inter-ca bitlocker
+    ./microca.sh -xqu BitLocker -c inter-ca bitlocker
 
 Same as before but certificate is signed by intermediate CA (contained into inter-ca.key and inter-ca.cer).
 

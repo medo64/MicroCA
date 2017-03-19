@@ -5,21 +5,24 @@ Wrapper around openssl for creation of self-signed CA and certificates.
   
 #### SYNOPSIS ####
 
-    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-g <digest>]
-               [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p] [-q] [-r]
-               [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
+    microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
+               [-g <digest>] [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p]
+               [-q] [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
 
 `-a`  
 Marks certificate as certificate authority.
 
 `-b <numbits>`  
-Number of bits to use for key. Default value is 2048.
+Number of bits to use for key. RSA keys can be between 1024 and 16384 bits (2048 default) while ECC keys can be either 256 (secp256r1/prime256v1; default), 384 (secp384r1) or 521 (secp521r1) bits.
 
 `-c <fileprefix>`  
 Prefix for CA (default value is ca).
 
 `-d <days>`  
 Number of days certificate is valid for. Default value is 3650 days.
+
+`-e`  
+Uses ECC algorithm instead of RSA for private key generation.
 
 `-g`  
 Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256.
@@ -40,7 +43,7 @@ Creates a self-signed end entity certificate, i.e. no certificate authority is u
 Do not use passphrase for private key.
 
 `-r`  
-Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384. Key will be valid for 7300 days.
+Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys (384 for ECC) and digest algorithm will be sha384. Certificate will be valid for 7300 days.
 
 `-s <subject>`  
 Full subject for a certificate (e.g. -s /C=US/CN=www.example.com).
@@ -76,7 +79,11 @@ Instead of being asked for subject, subject is defined on the command line.
 
     ./microca.sh -r -b 4096 -s "CN=My Root CA" -d 365
 
-The created root certificate is valid for 1 year only (default is 10 years).
+The created root certificate is valid for 1 year only (default is 20 years).
+
+    ./microca.sh -ers "CN=My Root CA"
+
+The created root certificate uses ECC curve instead of an RSA key.
 
 
 ##### Intermediate CA #####
@@ -122,4 +129,8 @@ Same as before but certificate is signed by intermediate CA (contained into inte
 
     ./microca.sh -qpb 1024 -s "CN=My Test" test
 
-Creates an self-signed end-entity certificate with 1024 bit RSA key and with subject CN=My Test. Key is placed into test.key and certificate into test.cer.
+Creates a self-signed end-entity certificate with 1024 bit RSA key and with subject CN=My Test. Key is placed into test.key and certificate into test.cer.
+
+    ./microca.sh -qepb 224 -s "CN=My Test" test
+
+Creates a self-signed end-entity certificate with 224 bit ECC key and with subject CN=My Test. Key is placed into test.key and certificate into test.cer.

@@ -1,8 +1,10 @@
 #!/bin/bash
 COMMAND_LINE="$0 $*"
 
-KEY_SIZE="2048"
-KEY_SIZE_FORCED=0
+KEY_ECC=0
+KEY_SIZE=""
+KEY_SIZE_RSA="2048"
+KEY_SIZE_ECC="256"
 KEY_PASSPHRASE_CIPHER="aes256"
 SIGNATURE_DIGEST="sha256"
 SIGNATURE_DIGEST_FORCED=0
@@ -25,24 +27,27 @@ EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
             echo
             echo -e "    \033[4m-b <numbits>\033[0m"
-            echo    "    Number of bits to use for key. Default value is 2048." | fmt
+            echo    "    Number of bits to use for key. RSA keys can be between 1024 and 16384 bits (2048 default) while ECC keys can be either 256 (secp256r1/prime256v1; default), 384 (secp384r1) or 521 (secp521r1) bits." | fmt
             echo
             echo -e "    \033[4m-c <fileprefix>\033[0m"
             echo    "    Prefix for CA (default value is ca)." | fmt
             echo
             echo -e "    \033[4m-d <days>\033[0m"
             echo    "    Number of days certificate is valid for. Default value is 3650 days." | fmt
+            echo
+            echo -e "    \033[4m-e\033[0m"
+            echo    "    Uses ECC algorithm instead of RSA for private key generation." | fmt
             echo
             echo -e "    \033[4m-g <digest>\033[0m"
             echo    "    Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256." | fmt
@@ -63,7 +68,7 @@ while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
             echo    "    Do not use passphrase for private key." | fmt
             echo
             echo -e "    \033[4m-r\033[0m"
-            echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384. Key will be valid for 7300 days." | fmt
+            echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys (384 for ECC) and digest algorithm will be sha384. Key will be valid for 7300 days." | fmt
             echo
             echo -e "    \033[4m-s <subject>\033[0m"
             echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
@@ -85,6 +90,7 @@ while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
             echo
             echo    "  SAMPLES"
             echo    "  $0 -r" | fmt
+            echo    "  $0 -re" | fmt
             echo    "  $0 -r -b 4096" | fmt
             echo    "  $0 -r -b 4096 -s \"CN=My Root CA\"" | fmt
             echo    "  $0 -a -b 2048 -s \"CN=My Intermediate CA\"" inter-ca | fmt
@@ -102,15 +108,7 @@ while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
         ;;
 
-        b)
-            if (( $OPTARG >= 1024 )) && (( $OPTARG <= 16384 )); then
-                KEY_SIZE=$OPTARG
-            else
-                echo "Value outside of range (1024 to 16384): -b $OPTARG!" >&2
-                exit 1
-            fi
-            KEY_SIZE_FORCED=1
-        ;;
+        b)  KEY_SIZE=$OPTARG ;;
 
         c)  CA_PREFIX="$OPTARG" ;;
 
@@ -123,6 +121,8 @@ while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
             fi
             CERTIFICATE_DAYS_FORCED=1
         ;;
+
+        e)  KEY_ECC=1 ;;
 
         g)
             TEMP_DIGEST_LOWER=`echo $OPTARG | tr '[:upper:]' '[:lower:]'`
@@ -152,8 +152,9 @@ while getopts ":ab:c:d:g:hi:m:n:pqrs:u:vx" OPT; do
         r)
             CA_CREATE=1
             CA_CREATE_ROOT=1
+            KEY_SIZE_ECC=384;
+            KEY_SIZE_RSA=4096;
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
-            if ! (( $KEY_SIZE_FORCED )); then KEY_SIZE=4096; fi
             if ! (( $SIGNATURE_DIGEST_FORCED )); then SIGNATURE_DIGEST=sha384; fi
             if ! (( $CERTIFICATE_DAYS_FORCED )); then CERTIFICATE_DAYS=7300; fi
         ;;
@@ -237,6 +238,21 @@ if [ "$OUTPUT_PREFIXES" == "" ] ; then
         OUTPUT_PREFIXES=ca
     else
         echo "No output files specified!" >&2
+        exit 1
+    fi
+fi
+
+
+if (( $KEY_ECC )); then
+    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_ECC; fi
+    if (( $KEY_SIZE != 256 )) && (( $KEY_SIZE != 384 )) && (( $KEY_SIZE != 521 )); then
+        echo "Value outside of range (256, 384, or 521) for ECC key: -b $KEY_SIZE!" >&2
+        exit 1
+    fi
+else
+    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_RSA; fi
+    if (( $KEY_SIZE < 1024 )) || (( $KEY_SIZE > 16384 )); then
+        echo "Value outside of range (1024 to 16384) for RSA key: -b $KEY_SIZE!" >&2
         exit 1
     fi
 fi
@@ -356,10 +372,28 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     CER_FILE=$OUTPUT_PREFIX.cer
     P12_FILE=$OUTPUT_PREFIX.p12
 
-    if [[ $KEY_PASSPHRASE_CIPHER != "" ]]; then
-        COMMAND_KEY="$OPENSSL_COMMAND genrsa -$KEY_PASSPHRASE_CIPHER -out $KEY_FILE $KEY_SIZE"
+    if (( $KEY_ECC )); then
+        COMMAND_KEY="$OPENSSL_COMMAND ecparam -genkey"
+        case $KEY_SIZE in
+            256) COMMAND_KEY="$COMMAND_KEY -name prime256v1" ;;
+            384) COMMAND_KEY="$COMMAND_KEY -name secp384r1" ;;
+            521) COMMAND_KEY="$COMMAND_KEY -name secp521r1" ;;
+            *)
+                echo "Unrecognized key size for ECC: -b $KEY_SIZE!" >&2
+                exit 1
+            ;;
+        esac
+        if [[ $KEY_PASSPHRASE_CIPHER != "" ]]; then
+            COMMAND_KEY="$COMMAND_KEY -noout | $OPENSSL_COMMAND ec -$KEY_PASSPHRASE_CIPHER -out $KEY_FILE"
+        else
+            COMMAND_KEY="$COMMAND_KEY -out $KEY_FILE"
+        fi
     else
-        COMMAND_KEY="$OPENSSL_COMMAND genrsa -out $KEY_FILE $KEY_SIZE"
+        if [[ $KEY_PASSPHRASE_CIPHER != "" ]]; then
+            COMMAND_KEY="$OPENSSL_COMMAND genrsa -$KEY_PASSPHRASE_CIPHER -out $KEY_FILE $KEY_SIZE"
+        else
+            COMMAND_KEY="$OPENSSL_COMMAND genrsa -out $KEY_FILE $KEY_SIZE"
+        fi
     fi
     if (( $VERBOSE >= 2 )); then
         echo ; echo "*** $COMMAND_KEY ***"

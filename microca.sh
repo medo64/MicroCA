@@ -4,14 +4,14 @@ COMMAND_LINE="$0 $*"
 KEY_SIZE="2048"
 KEY_SIZE_FORCED=0
 KEY_PASSPHRASE_CIPHER="aes256"
+SIGNATURE_DIGEST="sha256"
+SIGNATURE_DIGEST_FORCED=0
 
 CA_PREFIX="ca"
 CA_CREATE=0
 CA_CREATE_ROOT=0
 
 CERTIFICATE_DAYS=3650
-CERTIFICATE_DIGEST="sha256"
-CERTIFICATE_DIGEST_FORCED=0
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
@@ -127,16 +127,16 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
         g)
             TEMP_DIGEST_LOWER=`echo $OPTARG | tr '[:upper:]' '[:lower:]'`
             case $TEMP_DIGEST_LOWER in
-                sha256) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
-                sha384) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
-                sha512) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
+                sha256) SIGNATURE_DIGEST=$TEMP_DIGEST_LOWER ;;
+                sha384) SIGNATURE_DIGEST=$TEMP_DIGEST_LOWER ;;
+                sha512) SIGNATURE_DIGEST=$TEMP_DIGEST_LOWER ;;
 
                 *)
                     echo "Unrecognized digest algorithm: -g $OPTARG!" >&2
                     exit 1
                 ;;
             esac
-            CERTIFICATE_DIGEST_FORCED=1
+            SIGNATURE_DIGEST_FORCED=1
         ;;
 
         i)  CERTIFICATE_ALT_IP+=("$OPTARG") ;;
@@ -152,7 +152,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             CA_CREATE_ROOT=1
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
             if ! (( $KEY_SIZE_FORCED )); then KEY_SIZE=4096; fi
-            if ! (( $CERTIFICATE_DIGEST_FORCED )); then CERTIFICATE_DIGEST=sha384; fi
+            if ! (( $SIGNATURE_DIGEST_FORCED )); then SIGNATURE_DIGEST=sha384; fi
         ;;
         
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;
@@ -377,7 +377,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     if (( $CA_CREATE_ROOT )) || (( $CERTIFICATE_SELF )); then
 
-        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -$CERTIFICATE_DIGEST -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -$SIGNATURE_DIGEST -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
         fi
@@ -393,7 +393,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     else
 
-        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -$CERTIFICATE_DIGEST -out $CSR_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -$SIGNATURE_DIGEST -out $CSR_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
         fi

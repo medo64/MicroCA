@@ -40,7 +40,7 @@ DNS name to add into subjectAltName extension. Can be repeated multiple times.
 Creates a self-signed end entity certificate, i.e. no certificate authority is used.
 
 `-r`  
-Creates a self-signed root certificate authority.
+Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384.
 
 `-s <subject>`  
 Full subject for a certificate (e.g. -s /C=US/CN=www.example.com).

@@ -2,6 +2,7 @@
 COMMAND_LINE="$0 $*"
 
 KEY_SIZE="2048"
+KEY_SIZE_FORCED=0
 KEY_PASSPHRASE_CIPHER="aes256"
 
 CA_PREFIX="ca"
@@ -10,6 +11,7 @@ CA_CREATE_ROOT=0
 
 CERTIFICATE_DAYS=3650
 CERTIFICATE_DIGEST="sha256"
+CERTIFICATE_DIGEST_FORCED=0
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
@@ -60,7 +62,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             echo    "    Creates a self-signed end entity certificate, i.e. no certificate authority is used." | fmt
             echo
             echo -e "    \033[4m-r\033[0m"
-            echo    "    Creates a self-signed root certificate authority." | fmt
+            echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384." | fmt
             echo
             echo -e "    \033[4m-s <subject>\033[0m"
             echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
@@ -106,6 +108,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
                 echo "Value outside of range (1024 to 16384): -b $OPTARG!" >&2
                 exit 1
             fi
+            KEY_SIZE_FORCED=1
         ;;
 
         c)  CA_PREFIX="$OPTARG" ;;
@@ -133,6 +136,7 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
                     exit 1
                 ;;
             esac
+            CERTIFICATE_DIGEST_FORCED=1
         ;;
 
         i)  CERTIFICATE_ALT_IP+=("$OPTARG") ;;
@@ -147,6 +151,8 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             CA_CREATE=1
             CA_CREATE_ROOT=1
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
+            if ! (( $KEY_SIZE_FORCED )); then KEY_SIZE=4096; fi
+            if ! (( $CERTIFICATE_DIGEST_FORCED )); then CERTIFICATE_DIGEST=sha384; fi
         ;;
         
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;

@@ -6,8 +6,8 @@ Wrapper around openssl for creation of self-signed CA and certificates.
 #### SYNOPSIS ####
 
     microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
-               [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p] [-r]
-               [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
+               [-g <digest>] [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p]
+               [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
 
 `-a`  
 Marks certificate as certificate authority.
@@ -24,6 +24,8 @@ Number of days certificate is valid for. Default value is 3650 days.
 `-e`  
 Exports the resulting key as PKCS12 file.
 
+`-g`  
+Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256.
 
 `-i <ipaddress>`  
 IP address to add into subjectAltName extension. Can be repeated multiple times.

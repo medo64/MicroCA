@@ -9,6 +9,7 @@ CA_CREATE=0
 CA_CREATE_ROOT=0
 
 CERTIFICATE_DAYS=3650
+CERTIFICATE_DIGEST="sha256"
 CERTIFICATE_USAGES=""
 CERTIFICATE_EXTENDED_USAGES=""
 CERTIFICATE_SUBJECT=""
@@ -21,12 +22,12 @@ EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:ehi:m:n:prs:u:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -42,6 +43,9 @@ while getopts ":ab:c:d:ehi:m:n:prs:u:vx" OPT; do
             echo
             echo -e "    \033[4m-e\033[0m"
             echo    "    Exports the resulting key as PKCS12 file." | fmt
+            echo
+            echo -e "    \033[4m-g <digest>\033[0m"
+            echo    "    Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256." | fmt
             echo
             echo -e "    \033[4m-i <ipaddress>\033[0m"
             echo    "    IP address to add into subjectAltName extension. Can be repeated multiple times." | fmt
@@ -116,6 +120,20 @@ while getopts ":ab:c:d:ehi:m:n:prs:u:vx" OPT; do
         ;;
 
         e)  EXPORT=1 ;;
+
+        g)
+            TEMP_DIGEST_LOWER=`echo $OPTARG | tr '[:upper:]' '[:lower:]'`
+            case $TEMP_DIGEST_LOWER in
+                sha256) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
+                sha384) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
+                sha512) CERTIFICATE_DIGEST=$TEMP_DIGEST_LOWER ;;
+
+                *)
+                    echo "Unrecognized digest algorithm: -g $OPTARG!" >&2
+                    exit 1
+                ;;
+            esac
+        ;;
 
         i)  CERTIFICATE_ALT_IP+=("$OPTARG") ;;
 
@@ -353,7 +371,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     if (( $CA_CREATE_ROOT )) || (( $CERTIFICATE_SELF )); then
 
-        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -sha256 -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CER="$OPENSSL_COMMAND req -new -x509 -key $KEY_FILE -$CERTIFICATE_DIGEST -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -out $CER_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
         fi
@@ -369,7 +387,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
 
     else
 
-        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -sha256 -out $CSR_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
+        COMMAND_CSR="$OPENSSL_COMMAND req -new -key $KEY_FILE -$CERTIFICATE_DIGEST -out $CSR_FILE -config $TEMP_FILE_EXTENSIONS -extensions myext"
         if [[ "$CERTIFICATE_SUBJECT" != "" ]]; then
             COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
         fi

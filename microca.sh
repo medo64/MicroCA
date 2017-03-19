@@ -25,12 +25,12 @@ EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:v" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -62,6 +62,9 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             echo -e "    \033[4m-p\033[0m"
             echo    "    Creates a self-signed end entity certificate, i.e. no certificate authority is used." | fmt
             echo
+            echo -e "    \033[4m-q\033[0m"
+            echo    "    Do not use passphrase for private key." | fmt
+            echo
             echo -e "    \033[4m-r\033[0m"
             echo    "    Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384. Key will be valid for 7300 days." | fmt
             echo
@@ -73,9 +76,6 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
             echo
             echo -e "    \033[4m-v\033[0m"
             echo    "    Verbose output. It can be used multiple times for greater amount of details." | fmt
-            echo
-            echo -e "    \033[4m-x\033[0m"
-            echo    "    Do not use passphrase for private key." | fmt
             echo
             echo -e "    \033[4mfileprefix\033[0m"
             echo    "    File name prefix to use for key and certificate." | fmt
@@ -149,6 +149,8 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
 
         p)  CERTIFICATE_SELF=1 ;;
 
+        q)  KEY_PASSPHRASE_CIPHER="" ;;
+
         r)
             CA_CREATE=1
             CA_CREATE_ROOT=1
@@ -211,8 +213,6 @@ while getopts ":ab:c:d:eg:hi:m:n:prs:u:vx" OPT; do
         ;;
 
         v)  VERBOSE=$((VERBOSE + 1)) ;;
-
-        x)  KEY_PASSPHRASE_CIPHER="" ;;
 
         \?)
             echo "Invalid option: -$OPTARG!" >&2

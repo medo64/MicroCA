@@ -7,7 +7,7 @@ Wrapper around openssl for creation of self-signed CA and certificates.
 
     microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
                [-g <digest>] [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p]
-               [-r] [-s <subject>] [-u <usagebits>] [-v] [-x] fileprefix
+               [-q] [-r] [-s <subject>] [-u <usagebits>] [-v] fileprefix
 
 `-a`  
 Marks certificate as certificate authority.
@@ -39,6 +39,9 @@ DNS name to add into subjectAltName extension. Can be repeated multiple times.
 `-p`  
 Creates a self-signed end entity certificate, i.e. no certificate authority is used.
 
+`-q`  
+Do not use passphrase for private key.
+
 `-r`  
 Creates a self-signed root certificate authority. Unless otherwise specified key length will be 4096 for RSA keys and digest algorithm will be sha384. Key will be valid for 7300 days.
 
@@ -50,9 +53,6 @@ Certificate usage bits. It must be one of following usages: digitalSignature, no
 
 `-v`  
 Verbose output. It can be used multiple times for greater amount of details.
-
-`-x`  
-Do not use passphrase for private key.
 
 `fileprefix`  
 File name prefix to use for key and certificate.
@@ -92,34 +92,34 @@ Creates an intermediate CA with 2048 bit long key and subject text specified on 
 
 Creates an end-entity certificate signed using ca.key and ca.cer. User will be asked password for newly created key (and CA key, if password is present) and all the details of the certificate (e.g. subject). Key is placed into test.key and certificate is into test.cer.
 
-    ./microca.sh -x test
+    ./microca.sh -q test
 
 Same as above but without a password for newly created key.
 
-    ./microca.sh -ex test
+    ./microca.sh -eq test
 
 Same as above but certificate and key are additionally exported to test.p12 PKCS#12 container.
 
-    ./microca.sh -exu Server server
+    ./microca.sh -equ Server server
 
 Same as above but certificate is created with usage bits for server (digitalSignature, keyEncipherment, and serverAuth).
 
-    ./microca.sh -exu Server -n localhost -i 127.0.0.1 -s "CN=localhost" server
+    ./microca.sh -equ Server -n localhost -i 127.0.0.1 -s "CN=localhost" server
 
 Same as before but certificate also contains subjectAltName with localhost as DNS name and 127.0.0.1 as IP address. Subject is also defined to be CN=localhost.
 
-    ./microca.sh -exu Client client
+    ./microca.sh -equ Client client
 
 Same as before but certificate is created with usage bits for client (clientAuth).
 
-    ./microca.sh -exu BitLocker bitlocker
+    ./microca.sh -equ BitLocker bitlocker
 
 Same as before but certificate is created with usage bits for bitlocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1).
 
-    ./microca.sh -exu BitLocker -c inter-ca bitlocker
+    ./microca.sh -equ BitLocker -c inter-ca bitlocker
 
 Same as before but certificate is signed by intermediate CA (contained into inter-ca.key and inter-ca.cer).
 
-    ./microca.sh -xpb 1024 -s "CN=My Test" test
+    ./microca.sh -qpb 1024 -s "CN=My Test" test
 
 Creates an self-signed end-entity certificate with 1024 bit RSA key and with subject CN=My Test. Key is placed into test.key and certificate into test.cer.

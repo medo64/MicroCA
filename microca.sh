@@ -287,12 +287,16 @@ else
     echo "authorityKeyIdentifier=keyid,issuer" >> $TEMP_FILE_EXTENSIONS
 fi
 if (( $CA_CREATE )); then
-    echo "basicConstraints=CA:true" >> $TEMP_FILE_EXTENSIONS
+    echo "basicConstraints=critical,CA:true" >> $TEMP_FILE_EXTENSIONS
 else
     echo "basicConstraints=CA:false" >> $TEMP_FILE_EXTENSIONS
 fi
 if [[ "$CERTIFICATE_USAGES" != "" ]]; then
-    echo "keyUsage=`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
+    if (( $CA_CREATE )); then
+        echo "keyUsage=critical,`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
+    else
+        echo "keyUsage=`echo $CERTIFICATE_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS
+    fi
 fi
 if [[ "$CERTIFICATE_EXTENDED_USAGES" != "" ]]; then
     echo "extendedKeyUsage=`echo $CERTIFICATE_EXTENDED_USAGES | tr ' ' ','`" >> $TEMP_FILE_EXTENSIONS

@@ -23,16 +23,18 @@ CERTIFICATE_ALT_DNS=()
 CERTIFICATE_ALT_IP=()
 CERTIFICATE_ALT_EMAIL=()
 
+CERTIFICATE_ONLY_CER=0
+
 EXPORT=0
 VERBOSE=0
 OUTPUT_PREFIXES=""
 
-while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
     case $OPT in
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
+            echo -e "  `echo $0 | xargs basename` [\033[4m-a\033[0m] [\033[4m-b <numbits>\033[0m] [\033[4m-c <fileprefix>\033[0m] [\033[4m-d <days>\033[0m] [\033[4m-e\033[0m] [\033[4m-g <digest>\033[0m] [\033[4m-i <ipaddress>\033[0m] [\033[4m-m <email>\033[0m] [\033[4m-n <dnsname>\033[0m] [\033[4m-p\033[0m] [\033[4m-q\033[0m] [\033[4m-r\033[0m] [\033[4m-s <subject>\033[0m] [\033[4m-t\033[0m] [\033[4m-u <usagebits>\033[0m] [\033[4m-v\033[0m] [\033[4m-x\033[0m] \033[4mfileprefix\033[0m" | fmt
             echo
             echo -e "    \033[4m-a\033[0m"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -72,6 +74,9 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:vx" OPT; do
             echo
             echo -e "    \033[4m-s <subject>\033[0m"
             echo    "    Full subject for a certificate (e.g. -s /C=US/CN=www.example.com)." | fmt
+            echo
+            echo -e "    \033[4m-t\033[0m"
+            echo    "    Generate only CSR." | fmt
             echo
             echo -e "    \033[4m-u <usagebits>\033[0m"
             echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
@@ -160,6 +165,8 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:u:vx" OPT; do
         ;;
         
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;
+
+        t)  CERTIFICATE_ONLY_CER=1 ;;
 
         u)
             TEMP_USAGES=`echo $OPTARG | tr ',' ' '`
@@ -275,7 +282,7 @@ if (( $CA_CREATE_ROOT )); then
 elif (( $CA_CREATE )) && (( $CERTIFICATE_SELF )); then
     echo "Cannot self-sign intermediate certificate!" >&2
     exit 1
-elif ! (( $CERTIFICATE_SELF )); then
+elif ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CER )); then
     CA_KEY_FILE=$CA_PREFIX.key
     if ! [ -a $CA_KEY_FILE ]; then
         echo "Cannot find CA key file!" >&2
@@ -287,6 +294,14 @@ elif ! (( $CERTIFICATE_SELF )); then
         exit 1
     fi
 fi
+
+if (( $CA_CREATE_ROOT )) || (( $CA_CREATE )); then
+    if (( $CERTIFICATE_ONLY_CER )); then
+        echo "No CSR can be created for CA!" >&2
+        exit 1
+    fi
+fi
+
 
 if [ -a /bin/openssl.exe ]; then
     OPENSSL_COMMAND=/bin/openssl.exe
@@ -305,7 +320,7 @@ else
     fi
 fi
 
-if ! (( $CA_CREATE_ROOT )) && ! (( $CERTIFICATE_SELF )); then
+if ! (( $CA_CREATE_ROOT )) && ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CER )); then
     $OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE 2>/dev/null | grep "CA:TRUE" > /dev/null
     if [[ $? != 0 ]] ; then
         echo "Invalid certificate authority (no CA constraint)!" >&2
@@ -444,6 +459,8 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             exit 1
         fi
 
+        if (( CERTIFICATE_ONLY_CER )); then continue; fi
+        
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
         if (( $VERBOSE >= 2 )); then
             echo ; echo "*** $COMMAND_CER ***"

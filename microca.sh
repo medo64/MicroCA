@@ -32,6 +32,7 @@ OUTPUT_PREFIXES=""
 if [ -t 1 ]; then
     ESCAPE_RESET="\E[0m"
     ESCAPE_UNDERLINE="\E[4m"
+    ESCAPE_VERBOSE="\E[34;1m"
 fi
 
 while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
@@ -416,7 +417,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         fi
     fi
     if (( $VERBOSE >= 2 )); then
-        echo ; echo "*** $COMMAND_KEY ***"
+        echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_KEY ***${ESCAPE_RESET}"
     fi
     eval $COMMAND_KEY
     if [[ $? != 0 ]] ; then
@@ -427,7 +428,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     SERIAL=`$OPENSSL_COMMAND rand -hex 19`
 
     if (( $VERBOSE >= 3 )); then
-        echo ; echo "*** --- $TEMP_FILE_EXTENSIONS --- ***"
+        echo ; echo -e "${ESCAPE_VERBOSE}*** --- $TEMP_FILE_EXTENSIONS --- ***${ESCAPE_RESET}"
         cat $TEMP_FILE_EXTENSIONS
         echo "*** --- **"
     fi
@@ -439,7 +440,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             COMMAND_CER="$COMMAND_CER -subj \"$CERTIFICATE_SUBJECT\""
         fi
         if (( $VERBOSE >= 2 )); then
-            echo ; echo "*** $COMMAND_CER ***"
+            echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_CER ***${ESCAPE_RESET}"
         fi
         eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
@@ -455,7 +456,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             COMMAND_CSR="$COMMAND_CSR -subj \"$CERTIFICATE_SUBJECT\""
         fi
         if (( $VERBOSE >= 2 )); then
-            echo ; echo "*** $COMMAND_CSR ***"
+            echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_CSR ***${ESCAPE_RESET}"
         fi
         eval $COMMAND_CSR
         if [[ $? != 0 ]] ; then
@@ -468,7 +469,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
         
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
         if (( $VERBOSE >= 2 )); then
-            echo ; echo "*** $COMMAND_CER ***"
+            echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_CER ***${ESCAPE_RESET}"
         fi
         eval $COMMAND_CER
         if [[ $? != 0 ]] ; then
@@ -482,7 +483,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     if (( $VERBOSE )); then
         COMMAND_DET="$OPENSSL_COMMAND x509 -text -serial -fingerprint -in $CER_FILE"
         if (( $VERBOSE >= 2 )); then
-            echo ; echo "*** $COMMAND_DET ***"
+            echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_DET ***${ESCAPE_RESET}"
         fi
         echo
         eval $COMMAND_DET
@@ -491,7 +492,7 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
     if (( $EXPORT )); then
         COMMAND_EXP="$OPENSSL_COMMAND pkcs12 -export -in $CER_FILE -inkey $KEY_FILE -out $P12_FILE"
         if (( $VERBOSE >= 2 )); then
-            echo ; echo "*** $COMMAND_EXP ***"
+            echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_EXP ***${ESCAPE_RESET}"
         fi
         echo
         eval $COMMAND_EXP

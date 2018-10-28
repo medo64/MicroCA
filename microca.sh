@@ -23,7 +23,7 @@ CERTIFICATE_ALT_DNS=()
 CERTIFICATE_ALT_IP=()
 CERTIFICATE_ALT_EMAIL=()
 
-CERTIFICATE_ONLY_CER=0
+CERTIFICATE_ONLY_CSR=0
 
 EXPORT=0
 VERBOSE=0
@@ -169,10 +169,10 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
             if ! (( $SIGNATURE_DIGEST_FORCED )); then SIGNATURE_DIGEST=sha384; fi
             if ! (( $CERTIFICATE_DAYS_FORCED )); then CERTIFICATE_DAYS=7300; fi
         ;;
-        
+
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;
 
-        t)  CERTIFICATE_ONLY_CER=1 ;;
+        t)  CERTIFICATE_ONLY_CSR=1 ;;
 
         u)
             TEMP_USAGES=`echo $OPTARG | tr ',' ' '`
@@ -288,7 +288,7 @@ if (( $CA_CREATE_ROOT )); then
 elif (( $CA_CREATE )) && (( $CERTIFICATE_SELF )); then
     echo "Cannot self-sign intermediate certificate!" >&2
     exit 1
-elif ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CER )); then
+elif ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CSR )); then
     CA_KEY_FILE=$CA_PREFIX.key
     if ! [ -a $CA_KEY_FILE ]; then
         echo "Cannot find CA key file!" >&2
@@ -302,7 +302,7 @@ elif ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CER )); then
 fi
 
 if (( $CA_CREATE_ROOT )) || (( $CA_CREATE )); then
-    if (( $CERTIFICATE_ONLY_CER )); then
+    if (( $CERTIFICATE_ONLY_CSR )); then
         echo "No CSR can be created for CA!" >&2
         exit 1
     fi
@@ -326,7 +326,7 @@ else
     fi
 fi
 
-if ! (( $CA_CREATE_ROOT )) && ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CER )); then
+if ! (( $CA_CREATE_ROOT )) && ! (( $CERTIFICATE_SELF )) && ! (( $CERTIFICATE_ONLY_CSR )); then
     $OPENSSL_COMMAND x509 -text -noout -certopt ca_default -in $CA_CER_FILE 2>/dev/null | grep "CA:TRUE" > /dev/null
     if [[ $? != 0 ]] ; then
         echo "Invalid certificate authority (no CA constraint)!" >&2
@@ -465,8 +465,8 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             exit 1
         fi
 
-        if (( CERTIFICATE_ONLY_CER )); then continue; fi
-        
+        if (( $CERTIFICATE_ONLY_CSR )); then continue; fi
+
         COMMAND_CER="$OPENSSL_COMMAND x509 -req -CA $CA_CER_FILE -CAkey $CA_KEY_FILE -set_serial 0x42$SERIAL -days $CERTIFICATE_DAYS -in $CSR_FILE -out $CER_FILE -extfile $TEMP_FILE_EXTENSIONS -extensions myext"
         if (( $VERBOSE >= 2 )); then
             echo ; echo -e "${ESCAPE_VERBOSE}*** $COMMAND_CER ***${ESCAPE_RESET}"

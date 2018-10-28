@@ -24,6 +24,7 @@ CERTIFICATE_ALT_IP=()
 CERTIFICATE_ALT_EMAIL=()
 
 CERTIFICATE_ONLY_CSR=0
+CERTIFICATE_RETAIN_CSR=0
 
 EXPORT=0
 VERBOSE=0
@@ -35,7 +36,7 @@ if [ -t 1 ]; then
     ESCAPE_VERBOSE="\E[34;1m"
 fi
 
-while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
     case $OPT in
         h)
             echo
@@ -83,6 +84,9 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
             echo
             echo -e "    ${ESCAPE_UNDERLINE}-t${ESCAPE_RESET}"
             echo    "    Generate only CSR." | fmt
+            echo
+            echo -e "    ${ESCAPE_UNDERLINE}-T${ESCAPE_RESET}"
+            echo    "    Retain CSR after creating a request." | fmt
             echo
             echo -e "    ${ESCAPE_UNDERLINE}-u <usagebits>${ESCAPE_RESET}"
             echo    "    Certificate usage bits. It must be one of following usages: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign, encipherOnly, decipherOnly, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, msCodeInd, msCodeCom, msCTLSign, msSGC, msEFS, or nsSGC. Additionally one can specify CA (cRLSign and keyCertSign), Server (digitalSignature, keyEncipherment, and serverAuth), Client (clientAuth), or BitLocker (keyEncipherment and 1.3.6.1.4.1.311.67.1.1). If multiple usages are required, you can separate them with comma (,)." | fmt
@@ -173,6 +177,8 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tu:vx" OPT; do
         s)  CERTIFICATE_SUBJECT="$OPTARG" ;;
 
         t)  CERTIFICATE_ONLY_CSR=1 ;;
+
+        T)  CERTIFICATE_RETAIN_CSR=1 ;;
 
         u)
             TEMP_USAGES=`echo $OPTARG | tr ',' ' '`
@@ -306,6 +312,10 @@ if (( $CA_CREATE_ROOT )) || (( $CA_CREATE )); then
         echo "No CSR can be created for CA!" >&2
         exit 1
     fi
+fi
+
+if (( $CERTIFICATE_ONLY_CSR )) && !(( $CERTIFICATE_RETAIN_CSR )); then
+    echo "Certificate signing request will be retained as only CSR is produced." >&2
 fi
 
 
@@ -478,6 +488,9 @@ for OUTPUT_PREFIX in $OUTPUT_PREFIXES; do
             exit 1
         fi
 
+        if !(( $CERTIFICATE_RETAIN_CSR )); then
+            rm $CSR_FILE
+        fi
     fi
 
     if (( $VERBOSE )); then

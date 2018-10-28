@@ -3,8 +3,8 @@ COMMAND_LINE="$0 $*"
 
 KEY_ECC=0
 KEY_SIZE=""
-KEY_SIZE_RSA="2048"
-KEY_SIZE_ECC="256"
+KEY_SIZE_RSA_DEFAULT="2048"
+KEY_SIZE_ECC_DEFAULT="256"
 KEY_PASSPHRASE_CIPHER="aes256"
 SIGNATURE_DIGEST="sha256"
 SIGNATURE_DIGEST_FORCED=0
@@ -167,8 +167,8 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
         r)
             CA_CREATE=1
             CA_CREATE_ROOT=1
-            KEY_SIZE_ECC=384;
-            KEY_SIZE_RSA=4096;
+            KEY_SIZE_ECC_DEFAULT=384;
+            KEY_SIZE_RSA_DEFAULT=4096;
             CERTIFICATE_USAGES="$CERTIFICATE_USAGES keyCertSign cRLSign"
             if ! (( $SIGNATURE_DIGEST_FORCED )); then SIGNATURE_DIGEST=sha384; fi
             if ! (( $CERTIFICATE_DAYS_FORCED )); then CERTIFICATE_DAYS=7300; fi
@@ -263,16 +263,18 @@ fi
 
 
 if (( $KEY_ECC )); then
-    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_ECC; fi
+    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_ECC_DEFAULT; fi
     if (( $KEY_SIZE != 256 )) && (( $KEY_SIZE != 384 )) && (( $KEY_SIZE != 521 )); then
-        echo "Value outside of range (256, 384, or 521) for ECC key: -b $KEY_SIZE!" >&2
-        exit 1
+        echo "Value outside of range (256, 384, or 521) for ECC key: -b $KEY_SIZE." >&2
+        echo "Using default ECC key size ($KEY_SIZE_ECC_DEFAULT)." >&2
+        KEY_SIZE=$KEY_SIZE_ECC_DEFAULT
     fi
 else
-    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_RSA; fi
+    if [[ "$KEY_SIZE" == "" ]]; then KEY_SIZE=$KEY_SIZE_RSA_DEFAULT; fi
     if (( $KEY_SIZE < 1024 )) || (( $KEY_SIZE > 16384 )); then
-        echo "Value outside of range (1024 to 16384) for RSA key: -b $KEY_SIZE!" >&2
-        exit 1
+        echo "Value outside of range (1024 to 16384) for RSA key: -b $KEY_SIZE." >&2
+        echo "Using default RSA key size ($KEY_SIZE_RSA_DEFAULT)." >&2
+        KEY_SIZE=$KEY_SIZE_RSA_DEFAULT
     fi
 fi
     

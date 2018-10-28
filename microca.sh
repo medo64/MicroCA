@@ -41,7 +41,7 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
         h)
             echo
             echo    "  SYNOPSIS"
-            echo -e "  `echo $0 | xargs basename` [${ESCAPE_UNDERLINE}-a${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-b <numbits>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-c <fileprefix>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-d <days>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-e${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-g <digest>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-i <ipaddress>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-m <email>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-n <dnsname>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-p${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-q${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-r${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-s <subject>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-t${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-u <usagebits>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-v${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-x${ESCAPE_RESET}] ${ESCAPE_UNDERLINE}fileprefix${ESCAPE_RESET}" | fmt
+            echo -e "  `echo $0 | xargs basename` [${ESCAPE_UNDERLINE}-a${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-b <numbits>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-c <fileprefix>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-d <days>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-e${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-g <digest>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-i <ipaddress>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-m <email>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-n <dnsname>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-p${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-q${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-r${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-s <subject>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-t${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-T${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-u <usagebits>${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-v${ESCAPE_RESET}] [${ESCAPE_UNDERLINE}-x${ESCAPE_RESET}] ${ESCAPE_UNDERLINE}fileprefix${ESCAPE_RESET}" | fmt
             echo
             echo -e "    ${ESCAPE_UNDERLINE}-a${ESCAPE_RESET}"
             echo    "    Marks certificate as certificate authority." | fmt
@@ -111,9 +111,9 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
             echo    "  $0 -a -b 2048 -s \"CN=My Intermediate CA\"" inter-ca | fmt
             echo    "  $0 -p -b 1024 -s \"CN=My Test\" test" | fmt
             echo    "  $0 -p -b 1024 -s \"CN=My Test\" -i 127.0.0.1 -n localhost test" | fmt
-            echo    "  $0 -u Server server" | fmt
-            echo    "  $0 -u Client client" | fmt
-            echo    "  $0 -u BitLocker -x bitlocker" | fmt
+            echo    "  $0 -u Server -s \"CN=My Server\" myServer" | fmt
+            echo    "  $0 -u Client -s \"CN=My Client\" myClient" | fmt
+            echo    "  $0 -u BitLocker -x myBitocker" | fmt
             echo
             exit 0
         ;;

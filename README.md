@@ -24,7 +24,7 @@ Number of days certificate is valid for. Default value is 3650 days.
 `-e`  
 Uses ECC algorithm instead of RSA for private key generation.
 
-`-g`  
+`-g <digest>`  
 Digest algorithm. Allowed values are sha256, sha384, and sha512. Default value is sha256.
 
 `-i <ipaddress>`  
@@ -67,7 +67,7 @@ File name prefix to use for key and certificate.
 
     ./microca.sh -r
 
-CreateS a root certificate authority. User is asked password for the key and all details of the certificate (e.g. subject). Key is placed into ca.key and certificate is into ca.cer.
+Creates a root certificate authority. User is asked password for the key and all details of the certificate (e.g. subject). Key is placed into ca.key and certificate is into ca.cer.
 
     ./microca.sh -r -b 4096
 
@@ -126,6 +126,8 @@ Same as before but certificate is created with usage bits for bitlocker (keyEnci
     ./microca.sh -xqu BitLocker -c inter-ca bitlocker
 
 Same as before but certificate is signed by intermediate CA (contained into inter-ca.key and inter-ca.cer).
+
+##### Self-signed #####
 
     ./microca.sh -qpb 1024 -s "CN=My Test" test
 

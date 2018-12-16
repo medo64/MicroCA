@@ -2,3 +2,4 @@
 *.csr
 *.key
 *.p12
+releases/

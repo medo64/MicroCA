@@ -1,0 +1,8 @@
+Package:        MicroCA
+Version:        MAJOR.MINOR
+Architecture:   all
+Maintainer:     Josip Medved <jmedved@jmedved.com>
+Description:    Wrapper around openssl for creation of self-signed CA and certificates.
+Section:        misc
+Priority:       optional
+Depends:        openssl (>=1.0)

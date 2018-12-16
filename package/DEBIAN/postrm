@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$1" == "remove" ]
+then
+    if [ -f "/usr/bin/microca" ]
+    then
+        rm "/usr/bin/microca"
+    fi
+fi
+
+exit 0

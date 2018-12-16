@@ -61,7 +61,7 @@ Exports the resulting key as PKCS12 file.
 File name prefix to use for key and certificate.
 
 
-#### SAMPLES ####
+#### EXAMPLES ####
 
 ##### Root CA #####
 

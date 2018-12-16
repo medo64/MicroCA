@@ -103,7 +103,7 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
             echo    "  DESCRIPTION"
             echo    "  Wrapper around openssl for creation of self-signed CA and certificates." | fmt
             echo
-            echo    "  SAMPLES"
+            echo    "  EXAMPLES"
             echo    "  $0 -r" | fmt
             echo    "  $0 -re" | fmt
             echo    "  $0 -r -b 4096" | fmt
@@ -115,6 +115,9 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
             echo    "  $0 -u Client -s \"CN=My Client\" myClient" | fmt
             echo    "  $0 -u BitLocker -x myBitocker" | fmt
             echo
+            echo    "  AUTHOR"
+            echo    "  Josip Medved"
+            echo    "  www.medo64.com"
             exit 0
         ;;
 

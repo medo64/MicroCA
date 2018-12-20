@@ -5,4 +5,4 @@ Maintainer:     Josip Medved <jmedved@jmedved.com>
 Description:    Wrapper around openssl for creation of self-signed CA and certificates.
 Section:        misc
 Priority:       optional
-Depends:        openssl (>=1.0)
+Depends:        openssl (>=1.0), gnupg2

@@ -2,6 +2,7 @@ Package:        MicroCA
 Version:        MAJOR.MINOR
 Architecture:   all
 Maintainer:     Josip Medved <jmedved@jmedved.com>
+Homepage:       https://www.medo64.com/microca/
 Description:    Wrapper around openssl for creation of self-signed CA and certificates.
 Section:        misc
 Priority:       optional

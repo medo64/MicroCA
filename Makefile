@@ -58,8 +58,9 @@ package: dist
 	@chmod 755 $(PACKAGE_DIR)/DEBIAN/p*inst
 	@install -d $(PACKAGE_DIR)/usr/bin/
 	@install bin/microca $(PACKAGE_DIR)/usr/bin/
+	-@$(RM) /tmp/$(PACKAGE_NAME).deb
 	@dpkg-deb --build $(PACKAGE_DIR)/ > /dev/null
-	@cp /tmp/$(PACKAGE_NAME).deb dist/
+	@mv /tmp/$(PACKAGE_NAME).deb dist/
 	@$(RM) -r $(PACKAGE_DIR)/
 
 zip: dist

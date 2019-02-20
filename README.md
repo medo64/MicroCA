@@ -54,6 +54,9 @@ Certificate usage bits. It must be one of following usages: digitalSignature, no
 `-v`  
 Verbose output. It can be used multiple times for greater amount of details.
 
+`-V`  
+Shows version.
+
 `-x`  
 Exports the resulting key as PKCS12 file.
 

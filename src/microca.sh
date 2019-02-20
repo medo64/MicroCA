@@ -1,5 +1,6 @@
 #!/bin/bash
 COMMAND_LINE="$0 $*"
+VERSION=1.2.0
 
 KEY_ECC=0
 KEY_SIZE=""
@@ -36,7 +37,7 @@ if [ -t 1 ]; then
     ESCAPE_VERBOSE="\E[34;1m"
 fi
 
-while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
+while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vVx" OPT; do
     case $OPT in
         h)
             echo
@@ -234,6 +235,11 @@ while getopts ":ab:c:d:eg:hi:m:n:pqrs:tTu:vx" OPT; do
         ;;
 
         v)  VERBOSE=$((VERBOSE + 1)) ;;
+
+        V)
+            echo "MicroCA $VERSION"
+            exit 0
+        ;;
 
         x)  EXPORT=1 ;;
 

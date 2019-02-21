@@ -40,6 +40,7 @@ dist: all
 	@tar -cz -C build/dist/ -f build/dist/$(DIST_NAME)-$(DIST_VERSION).tar.gz $(DIST_NAME)-$(DIST_VERSION)/
 	@mkdir -p dist/
 	@mv build/dist/$(DIST_NAME)-$(DIST_VERSION).tar.gz dist/
+	@echo Output at dist/$(DIST_NAME)-$(DIST_VERSION).tar.gz
 
 
 package: dist
@@ -62,6 +63,7 @@ package: dist
 	@dpkg-deb --build $(PACKAGE_DIR)/ > /dev/null
 	@mv /tmp/$(PACKAGE_NAME).deb dist/
 	@$(RM) -r $(PACKAGE_DIR)/
+	@echo Output at dist/$(PACKAGE_NAME).deb
 
 zip: dist
 	@command -v zip >/dev/null 2>&1 || { echo >&2 "Package 'zip' not installed!"; exit 1; }
@@ -78,3 +80,4 @@ zip: dist
 	@zip -jq /tmp/$(PACKAGE_NAME).zip $(PACKAGE_DIR)/*
 	@mv /tmp/$(PACKAGE_NAME).zip dist/
 	@$(RM) -r $(PACKAGE_DIR)/
+	@echo Output at dist/$(PACKAGE_NAME).zip

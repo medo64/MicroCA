@@ -1,9 +1,10 @@
-### Micro CA ###
+[![Micro CA](ICON.png)](https://www.medo64.com/microca/)  Micro CA
+==================================================================
 
-Wrapper around openssl for creation of self-signed CA and certificates.
+OpenSSL wrapper for creation of self-signed CA and certificates.
 
   
-#### SYNOPSIS ####
+## SYNOPSIS ##
 
     microca.sh [-a] [-b <numbits>] [-c <fileprefix>] [-d <days>] [-e]
                [-g <digest>] [-i <ipaddress>] [-m <email>] [-n <dnsname>] [-p]
@@ -64,9 +65,9 @@ Exports the resulting key as PKCS12 file.
 File name prefix to use for key and certificate.
 
 
-#### EXAMPLES ####
+## EXAMPLES ##
 
-##### Root CA #####
+### Root CA ###
 
     ./microca.sh -r
 
@@ -89,14 +90,14 @@ The created root certificate is valid for 1 year only (default is 20 years).
 The created root certificate uses ECC curve instead of an RSA key.
 
 
-##### Intermediate CA #####
+### Intermediate CA ###
 
     ./microca.sh -a -b 2048 -s "CN=My Intermediate CA" inter-ca
 
 Creates an intermediate CA with 2048 bit long key and subject text specified on command line. Key is placed into inter-ca.key and certificate is into inter-ca.cer.
 
 
-##### End entity #####
+### End entity ###
 
     ./microca.sh test
 
@@ -130,7 +131,7 @@ Same as before but certificate is created with usage bits for bitlocker (keyEnci
 
 Same as before but certificate is signed by intermediate CA (contained into inter-ca.key and inter-ca.cer).
 
-##### Self-signed #####
+### Self-signed ###
 
     ./microca.sh -qpb 1024 -s "CN=My Test" test
 

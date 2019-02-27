@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "deb https://medo64.com/repositories/deb stable main" > /etc/apt/sources.list.d/medo64.list
 echo "-----BEGIN PGP PUBLIC KEY BLOCK-----

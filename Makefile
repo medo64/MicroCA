@@ -54,15 +54,27 @@ package: dist
 	@mkdir $(PACKAGE_DIR)/
 	@cp -r package/deb/DEBIAN $(PACKAGE_DIR)/
 	@sed -i "s/MAJOR.MINOR/$(DIST_VERSION)/" $(PACKAGE_DIR)/DEBIAN/control
+	@mkdir -p $(PACKAGE_DIR)/usr/share/doc/microca/
+	@cp package/deb/copyright $(PACKAGE_DIR)/usr/share/doc/microca/copyright
+	@cp CHANGES.md build/changelog
+	@sed -i '/^$$/d' build/changelog
+	@sed -i '/## Release Notes ##/d' build/changelog
+	@sed -i '1{s/### \(.*\) \[.*/microca \(\1\) stable; urgency=low/}' build/changelog
+	@sed -i '/###/,$$d' build/changelog
+	@sed -i 's/\* \(.*\)/  \* \1/' build/changelog
+	@echo >> build/changelog
+	@echo ' -- Josip Medved <jmedved@jmedved.com>  $(shell date -R)' >> build/changelog
+	@gzip -cn --best build/changelog > $(PACKAGE_DIR)/usr/share/doc/microca/changelog.gz
 	@find $(PACKAGE_DIR)/ -type d -exec chmod 755 {} +
 	@find $(PACKAGE_DIR)/ -type f -exec chmod 644 {} +
 	@chmod 755 $(PACKAGE_DIR)/DEBIAN/p*inst
 	@install -d $(PACKAGE_DIR)/usr/bin/
 	@install bin/microca $(PACKAGE_DIR)/usr/bin/
 	-@$(RM) /tmp/$(PACKAGE_NAME).deb
-	@dpkg-deb --build $(PACKAGE_DIR)/ > /dev/null
+	@fakeroot dpkg-deb --build $(PACKAGE_DIR)/ > /dev/null
 	@mv /tmp/$(PACKAGE_NAME).deb dist/
 	@$(RM) -r $(PACKAGE_DIR)/
+	-@lintian dist/$(PACKAGE_NAME).deb
 	@echo Output at dist/$(PACKAGE_NAME).deb
 
 zip: dist

@@ -1,9 +1,10 @@
-Package:        MicroCA
+Package:        microca
 Version:        MAJOR.MINOR
 Architecture:   all
 Maintainer:     Josip Medved <jmedved@jmedved.com>
 Homepage:       https://www.medo64.com/microca/
-Description:    Wrapper around openssl for creation of self-signed CA and certificates.
+Description:    OpenSSL wrapper for creation of self-signed CA and certificates.
+ Supports various usage bits including CA, client, server, and BitLocker.
 Section:        misc
 Priority:       optional
 Depends:        openssl (>=1.0), gnupg2

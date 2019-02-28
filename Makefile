@@ -25,9 +25,17 @@ distclean: clean
 install: bin/microca
 	@sudo install -d $(DESTDIR)/$(PREFIX)/bin/
 	@sudo install bin/microca $(DESTDIR)/$(PREFIX)/bin/
+	@mkdir -p build/man/
+	@sed 's/MAJOR.MINOR//g' docs/man/microca.1 > build/man/microca.1
+	@gzip -cn --best build/man/microca.1 > build/man/microca.1.gz
+	@sudo install -m 644 build/man/microca.1.gz /usr/share/man/man1/
+	@sudo mandb -q
+
 
 uninstall: $(DESTDIR)/$(PREFIX)/bin/microca
 	@sudo $(RM) $(DESTDIR)/$(PREFIX)/bin/microca
+	@sudo $(RM) /usr/share/man/man1/microca.1.gz
+	@sudo mandb -q
 
 
 dist: all
@@ -65,6 +73,10 @@ package: dist
 	@echo >> build/changelog
 	@echo ' -- Josip Medved <jmedved@jmedved.com>  $(shell date -R)' >> build/changelog
 	@gzip -cn --best build/changelog > $(PACKAGE_DIR)/usr/share/doc/microca/changelog.gz
+	@mkdir -p build/man/
+	@sed 's/MAJOR.MINOR//g' docs/man/microca.1 > build/man/microca.1
+	@mkdir -p $(PACKAGE_DIR)/usr/share/man/man1/
+	@gzip -cn --best build/man/microca.1 > $(PACKAGE_DIR)/usr/share/man/man1/microca.1.gz
 	@find $(PACKAGE_DIR)/ -type d -exec chmod 755 {} +
 	@find $(PACKAGE_DIR)/ -type f -exec chmod 644 {} +
 	@chmod 755 $(PACKAGE_DIR)/DEBIAN/p*inst

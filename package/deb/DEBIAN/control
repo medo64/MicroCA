@@ -8,3 +8,5 @@ Description:    OpenSSL wrapper for creation of self-signed CA and certificates.
 Section:        misc
 Priority:       optional
 Depends:        openssl (>=1.0), gnupg2
+Build-Depends:  
+

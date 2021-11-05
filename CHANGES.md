@@ -1,5 +1,9 @@
 ## Release Notes ##
 
+### 1.2.3 [2021-11-04] ###
+
+* Updated deb package
+
 ### 1.2.2 [2019-02-27] ###
 
 * Added man pages

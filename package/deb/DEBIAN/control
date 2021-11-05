@@ -7,6 +7,4 @@ Description:    OpenSSL wrapper for creation of self-signed CA and certificates.
  Supports various usage bits including CA, client, server, and BitLocker.
 Section:        misc
 Priority:       optional
-Depends:        openssl (>=1.0), gnupg2
-Build-Depends:  
-
+Depends:        debconf, openssl (>=1.0), gnupg2

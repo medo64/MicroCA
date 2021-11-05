@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+# Purge debconf
+if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+    db_purge
+fi
+
+# Done
+exit 0

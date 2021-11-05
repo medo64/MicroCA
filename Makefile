@@ -79,7 +79,7 @@ package: dist
 	@gzip -cn --best build/man/microca.1 > $(PACKAGE_DIR)/usr/share/man/man1/microca.1.gz
 	@find $(PACKAGE_DIR)/ -type d -exec chmod 755 {} +
 	@find $(PACKAGE_DIR)/ -type f -exec chmod 644 {} +
-	@chmod 755 $(PACKAGE_DIR)/DEBIAN/p*inst
+	@chmod 755 $(PACKAGE_DIR)/DEBIAN/config $(PACKAGE_DIR)/DEBIAN/p*rm $(PACKAGE_DIR)/DEBIAN/p*inst
 	@install -d $(PACKAGE_DIR)/usr/bin/
 	@install bin/microca $(PACKAGE_DIR)/usr/bin/
 	-@$(RM) /tmp/$(PACKAGE_NAME).deb

@@ -1,6 +1,6 @@
 #!/bin/bash
 COMMAND_LINE="$0 $*"
-VERSION=1.2.2
+VERSION=1.2.3
 
 KEY_ECC=0
 KEY_SIZE=""
